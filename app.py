@@ -48,6 +48,7 @@ def generate_pdf_from_steps(steps):
     elements = []
     styles = getSampleStyleSheet()
     center_heading = ParagraphStyle(name='CenterHeading', parent=styles['Heading2'], alignment=TA_CENTER)
+    centered_normal = ParagraphStyle(name='CenteredNormal', parent=styles['Normal'], alignment=TA_CENTER)
 
     for step in steps:
         table_data = [[
@@ -55,15 +56,15 @@ def generate_pdf_from_steps(steps):
             "STEP (PASO)",
             "MEAL CODE (CÓDIGO DE COMIDA)"
         ], [
-            Paragraph(f"<font size=9>{step['Component Type']}</font>", styles["Normal"]),
-            Paragraph(f"<font size=9>{step['Step']}</font>", styles["Normal"]),
-            Paragraph(f"<font size=9>{step['Meal Code']}</font>", styles["Normal"])
+            Paragraph(f"<font size=8>{step['Component Type']}</font>", centered_normal),
+            Paragraph(f"<font size=8>{step['Step']}</font>", centered_normal),
+            Paragraph(f"<font size=8>{step['Meal Code']}</font>", centered_normal)
         ]]
         table = Table(table_data, colWidths=[2.2 * inch] * 3)
         table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTNAME', (0, 1), (-1, 1), 'Helvetica'),
             ('BOX', (0, 0), (-1, -1), 1, colors.black),
