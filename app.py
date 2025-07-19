@@ -1,4 +1,3 @@
-
 import streamlit as st
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
@@ -10,7 +9,10 @@ from reportlab.lib import colors
 
 st.title("Multi-Step Plating PDF Generator")
 
-st.write("Add plating steps one by one, then generate a full PDF.")
+st.write("Enter the meal code once, then add plating steps one by one.")
+
+# Persistent meal code
+meal_code = st.text_input("Meal Code (e.g. A, B, AV2)", key="meal_code")
 
 if "steps" not in st.session_state:
     st.session_state.steps = []
@@ -19,7 +21,6 @@ with st.form("step_form"):
     component_type = st.text_input("Component Type (e.g. VEG 1, PROTEIN 1)")
     placement = st.text_input("Placement (e.g. Bottom, On top of Mash)")
     step_code = st.text_input("Step Code (e.g. 1-P1)")
-    meal_code = st.text_input("Meal Code (e.g. A, B, AV2)")
     meal_component_name = st.text_input("Meal Component Name")
     standard_size = st.text_input("Standard Size (g)")
     large_size = st.text_input("Large Size (g)")
