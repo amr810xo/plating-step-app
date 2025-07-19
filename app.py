@@ -51,13 +51,13 @@ def generate_pdf_from_steps(steps):
 
     for step in steps:
         table_data = [[
-            f"COMPONENT TYPE (TIPO DE COMPONENTE)",
-            f"STEP (PASO)",
-            f"MEAL CODE (CÓDIGO DE COMIDA)"
+            "COMPONENT TYPE (TIPO DE COMPONENTE)",
+            "STEP (PASO)",
+            "MEAL CODE (CÓDIGO DE COMIDA)"
         ], [
-            f"<font size=10>{step['Component Type']}</font>",
-            f"<font size=10>{step['Step']}</font>",
-            f"<font size=10>{step['Meal Code']}</font>"
+            Paragraph(f"<font size=9>{step['Component Type']}</font>", styles["Normal"]),
+            Paragraph(f"<font size=9>{step['Step']}</font>", styles["Normal"]),
+            Paragraph(f"<font size=9>{step['Meal Code']}</font>", styles["Normal"])
         ]]
         table = Table(table_data, colWidths=[2.2 * inch] * 3)
         table.setStyle(TableStyle([
@@ -73,9 +73,7 @@ def generate_pdf_from_steps(steps):
         elements.append(Spacer(1, 0.2 * inch))
 
         # Placement
-        placement_table = Table([[
-            "PLACEMENT (COLOCACIÓN)"
-        ]], colWidths=[6.6 * inch])
+        placement_table = Table([["PLACEMENT (COLOCACIÓN)"]], colWidths=[6.6 * inch])
         placement_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
@@ -86,9 +84,7 @@ def generate_pdf_from_steps(steps):
         elements.append(Spacer(1, 0.2 * inch))
 
         # Component Name
-        name_table = Table([[
-            "COMPONENT NAME (NOMBRE DEL COMPONENTE)"
-        ]], colWidths=[6.6 * inch])
+        name_table = Table([["COMPONENT NAME (NOMBRE DEL COMPONENTE)"]], colWidths=[6.6 * inch])
         name_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
@@ -99,9 +95,7 @@ def generate_pdf_from_steps(steps):
         elements.append(Spacer(1, 0.2 * inch))
 
         # Standard Size
-        std_table = Table([[
-            "STANDARD (ESTÁNDAR)"
-        ]], colWidths=[6.6 * inch])
+        std_table = Table([["STANDARD (ESTÁNDAR)"]], colWidths=[6.6 * inch])
         std_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
@@ -112,9 +106,7 @@ def generate_pdf_from_steps(steps):
         elements.append(Spacer(1, 0.2 * inch))
 
         # Large Size
-        lg_table = Table([[
-            "LARGE (GRANDE)"
-        ]], colWidths=[6.6 * inch])
+        lg_table = Table([["LARGE (GRANDE)"]], colWidths=[6.6 * inch])
         lg_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
