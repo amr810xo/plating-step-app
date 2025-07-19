@@ -2,14 +2,18 @@ import streamlit as st
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Frame
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
 from reportlab.lib import colors
+import re
 
 st.title("Multi-Step Plating PDF Generator")
 
-st.write("Enter the meal code once, then add plating steps one by one.")
+st.write("Enter the meal name (for file name), meal code once, then add plating steps one by one.")
+
+# Meal name input (used for filename only)
+meal_name = st.text_input("Meal Name (used for file name only)", key="meal_name")
 
 # Persistent meal code
 meal_code = st.text_input("Meal Code (e.g. A, B, AV2)", key="meal_code")
@@ -47,38 +51,68 @@ def generate_pdf_from_steps(steps):
 
     for step in steps:
         table_data = [[
-            f"COMPONENT TYPE (TIPO DE COMPONENTE)\n{step['Component Type']}",
-            f"STEP (PASO)\n{step['Step']}",
-            f"MEAL CODE (CÓDIGO DE COMIDA)\n{step['Meal Code']}"
+            f"COMPONENT TYPE (TIPO DE COMPONENTE)",
+            f"STEP (PASO)",
+            f"MEAL CODE (CÓDIGO DE COMIDA)"
+        ], [
+            step['Component Type'], step['Step'], step['Meal Code']
         ]]
         table = Table(table_data, colWidths=[2.2 * inch] * 3)
         table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica'),
+            ('BOX', (0, 0), (-1, -1), 1, colors.black),
+            ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black)
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1, 0.2 * inch))
+
+        # Placement
+        placement_table = Table([["PLACEMENT (COLOCACIÓN)"]], colWidths=[6.6 * inch])
+        placement_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
             ('BOX', (0, 0), (-1, -1), 1, colors.black)
         ]))
-        elements.append(table)
-        elements.append(Spacer(1, 0.3 * inch))
+        elements.append(placement_table)
+        elements.append(Paragraph(f"<b>{step['Placement']}</b>", center_heading))
+        elements.append(Spacer(1, 0.2 * inch))
 
-        elements.append(Paragraph("PLACEMENT (COLOCACIÓN)", center_heading))
-        elements.append(Paragraph(f"<b>{step['Placement']}</b>", styles['Title']))
-        elements.append(Spacer(1, 0.3 * inch))
+        # Component Name
+        name_table = Table([["COMPONENT NAME (NOMBRE DEL COMPONENTE)"]], colWidths=[6.6 * inch])
+        name_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('BOX', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(name_table)
+        elements.append(Paragraph(f"<b>{step['Meal Component Name']}</b>", center_heading))
+        elements.append(Spacer(1, 0.2 * inch))
 
-        elements.append(Paragraph("COMPONENT NAME (NOMBRE DEL COMPONENTE)", center_heading))
-        elements.append(Paragraph(f"<b>{step['Meal Component Name']}</b>", styles['Title']))
-        elements.append(Spacer(1, 0.3 * inch))
-
-        elements.append(Paragraph("STANDARD (ESTÁNDAR)", center_heading))
+        # Standard Size
+        std_table = Table([["STANDARD (ESTÁNDAR)"]], colWidths=[6.6 * inch])
+        std_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('BOX', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(std_table)
         elements.append(Paragraph(f"<font size=28><b>{step['Standard Size']}</b></font>", center_heading))
         elements.append(Spacer(1, 0.2 * inch))
 
-        elements.append(Paragraph("LARGE (GRANDE)", center_heading))
+        # Large Size
+        lg_table = Table([["LARGE (GRANDE)"]], colWidths=[6.6 * inch])
+        lg_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('BOX', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(lg_table)
         elements.append(Paragraph(f"<font size=28><b>{step['Large Size']}</b></font>", center_heading))
-        elements.append(Spacer(1, 0.8 * inch))
-
-        elements.append(Spacer(1, 0.2 * inch))
+        elements.append(Spacer(1, 0.6 * inch))
 
     doc.build(elements)
     buffer.seek(0)
@@ -92,7 +126,8 @@ if st.session_state.steps:
 
     if st.button("📄 Generate PDF"):
         pdf_buffer = generate_pdf_from_steps(st.session_state.steps)
-        st.download_button("📥 Download PDF", data=pdf_buffer, file_name="plating_steps.pdf", mime="application/pdf")
+        safe_filename = re.sub(r'[^a-zA-Z0-9_-]', '_', meal_name)[:25] or "plating_steps"
+        st.download_button("📥 Download PDF", data=pdf_buffer, file_name=f"{safe_filename}.pdf", mime="application/pdf")
 
     if st.button("🗑️ Clear All Steps"):
         st.session_state.steps.clear()
