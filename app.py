@@ -48,11 +48,10 @@ def generate_pdf_from_steps(steps):
     for step in steps:
         table_data = [[
             f"COMPONENT\n(TYPE)\n{step['Component Type']}",
-            f"PLACEMENT\n{step['Placement']}",
             f"STEP (#)\n{step['Step']}",
             f"MEAL CODE\n{step['Meal Code']}"
         ]]
-        table = Table(table_data, colWidths=[1.7 * inch] * 4)
+        table = Table(table_data, colWidths=[2.2 * inch] * 3)
         table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -61,6 +60,11 @@ def generate_pdf_from_steps(steps):
             ('BOX', (0, 0), (-1, -1), 1, colors.black)
         ]))
         elements.append(table)
+        elements.append(Spacer(1, 0.3 * inch))
+
+        # Placement moved below the header table
+        elements.append(Paragraph("PLACEMENT", center_heading))
+        elements.append(Paragraph(f"<b>{step['Placement']}</b>", styles['Title']))
         elements.append(Spacer(1, 0.3 * inch))
 
         elements.append(Paragraph("MEAL COMPONENT NAME", center_heading))
