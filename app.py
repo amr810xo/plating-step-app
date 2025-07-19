@@ -47,9 +47,9 @@ def generate_pdf_from_steps(steps):
 
     for step in steps:
         table_data = [[
-            f"COMPONENT\n(TYPE)\n{step['Component Type']}",
-            f"STEP (#)\n{step['Step']}",
-            f"MEAL CODE\n{step['Meal Code']}"
+            f"COMPONENT TYPE (TIPO DE COMPONENTE)\n{step['Component Type']}",
+            f"STEP (PASO)\n{step['Step']}",
+            f"MEAL CODE (CÓDIGO DE COMIDA)\n{step['Meal Code']}"
         ]]
         table = Table(table_data, colWidths=[2.2 * inch] * 3)
         table.setStyle(TableStyle([
@@ -62,20 +62,19 @@ def generate_pdf_from_steps(steps):
         elements.append(table)
         elements.append(Spacer(1, 0.3 * inch))
 
-        # Placement moved below the header table
-        elements.append(Paragraph("PLACEMENT", center_heading))
+        elements.append(Paragraph("PLACEMENT (COLOCACIÓN)", center_heading))
         elements.append(Paragraph(f"<b>{step['Placement']}</b>", styles['Title']))
         elements.append(Spacer(1, 0.3 * inch))
 
-        elements.append(Paragraph("MEAL COMPONENT NAME", center_heading))
+        elements.append(Paragraph("COMPONENT NAME (NOMBRE DEL COMPONENTE)", center_heading))
         elements.append(Paragraph(f"<b>{step['Meal Component Name']}</b>", styles['Title']))
         elements.append(Spacer(1, 0.3 * inch))
 
-        elements.append(Paragraph("STANDARD (SIZE)", center_heading))
+        elements.append(Paragraph("STANDARD (ESTÁNDAR)", center_heading))
         elements.append(Paragraph(f"<font size=28><b>{step['Standard Size']}</b></font>", center_heading))
         elements.append(Spacer(1, 0.2 * inch))
 
-        elements.append(Paragraph("LARGE (SIZE)", center_heading))
+        elements.append(Paragraph("LARGE (GRANDE)", center_heading))
         elements.append(Paragraph(f"<font size=28><b>{step['Large Size']}</b></font>", center_heading))
         elements.append(Spacer(1, 0.8 * inch))
 
