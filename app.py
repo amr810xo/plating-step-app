@@ -2,15 +2,33 @@ import streamlit as st
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Frame
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 import re
 
+st.set_page_config(page_title="Multi-Step Plating PDF Generator", layout="centered")
 st.title("Multi-Step Plating PDF Generator")
 
 st.write("Enter the meal name (for file name), meal code once, then add plating steps one by one.")
+
+# Inject JavaScript for auto-expanding text fields
+st.markdown("""
+<style>
+textarea {
+  overflow: hidden;
+  resize: none;
+}
+</style>
+<script>
+document.addEventListener('input', function (event) {
+  if (event.target.tagName.toLowerCase() !== 'textarea') return;
+  event.target.style.height = 'auto';
+  event.target.style.height = (event.target.scrollHeight) + 'px';
+}, false);
+</script>
+""", unsafe_allow_html=True)
 
 # Meal name input (used for filename only)
 meal_name = st.text_input("Meal Name (used for file name only)", key="meal_name")
@@ -22,10 +40,10 @@ if "steps" not in st.session_state:
     st.session_state.steps = []
 
 with st.form("step_form"):
-    component_type = st.text_input("Component Type (e.g. VEG 1, PROTEIN 1)")
-    placement = st.text_input("Placement (e.g. Bottom, On top of Mash)")
-    step_code = st.text_input("Step Code (e.g. 1-P1)")
-    meal_component_name = st.text_input("Meal Component Name")
+    component_type = st.text_area("Component Type (e.g. VEG 1, PROTEIN 1)")
+    placement = st.text_area("Placement (e.g. Bottom, On top of Mash)")
+    step_code = st.text_area("Step Code (e.g. 1-P1)")
+    meal_component_name = st.text_area("Meal Component Name")
     standard_size = st.text_input("Standard Size (g)")
     large_size = st.text_input("Large Size (g)")
 
@@ -51,26 +69,34 @@ def generate_pdf_from_steps(steps):
     centered_normal = ParagraphStyle(name='CenteredNormal', parent=styles['Normal'], alignment=TA_CENTER)
 
     for step in steps:
-        table_data = [[
+        # Header labels (no borders)
+        header_data = [[
             "COMPONENT TYPE (TIPO DE COMPONENTE)",
             "STEP (PASO)",
             "MEAL CODE (CÓDIGO DE COMIDA)"
-        ], [
+        ]]
+        header_table = Table(header_data, colWidths=[2.2 * inch] * 3)
+        header_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9)
+        ]))
+        elements.append(header_table)
+
+        # Data row (with border)
+        data_table = Table([[
             Paragraph(f"<font size=8>{step['Component Type']}</font>", centered_normal),
             Paragraph(f"<font size=8>{step['Step']}</font>", centered_normal),
             Paragraph(f"<font size=8>{step['Meal Code']}</font>", centered_normal)
-        ]]
-        table = Table(table_data, colWidths=[2.2 * inch] * 3)
-        table.setStyle(TableStyle([
+        ]], colWidths=[2.2 * inch] * 3)
+        data_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('FONTSIZE', (0, 0), (-1, 0), 9),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
             ('BOX', (0, 0), (-1, -1), 1, colors.black),
             ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black)
         ]))
-        elements.append(table)
+        elements.append(data_table)
         elements.append(Spacer(1, 0.2 * inch))
 
         # Placement
@@ -115,7 +141,9 @@ def generate_pdf_from_steps(steps):
         ]))
         elements.append(lg_table)
         elements.append(Paragraph(f"<font size=28><b>{step['Large Size']}</b></font>", center_heading))
-        elements.append(Spacer(1, 0.6 * inch))
+
+        # Page break after each step
+        elements.append(PageBreak())
 
     doc.build(elements)
     buffer.seek(0)
