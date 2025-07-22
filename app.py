@@ -11,7 +11,7 @@ import re
 st.set_page_config(page_title="Multi-Step Plating PDF Generator", layout="centered")
 st.title("Multi-Step Plating PDF Generator")
 
-st.write("Paste a step description below. Standard Size and Large Size must still be entered manually.")
+st.write("Paste multiple step descriptions below. Each line should be a separate step.")
 
 # Inject JavaScript for auto-expanding text fields
 st.markdown("""
@@ -36,47 +36,54 @@ meal_name = st.text_input("Meal Name (used for file name only)", key="meal_name"
 # Persistent meal code
 meal_code = st.text_input("Meal Code (e.g. A, B, AV2)", key="meal_code")
 
-if "steps" not in st.session_state:
-    st.session_state.steps = []
+if "parsed_steps" not in st.session_state:
+    st.session_state.parsed_steps = []
 
-with st.form("step_form"):
-    raw_input = st.text_area("Paste Step Description")
-    standard_size = st.text_input("Standard Size (g)")
-    large_size = st.text_input("Large Size (g)")
+multi_input = st.text_area("Paste Multiple Steps (1 per line)")
 
-    submitted = st.form_submit_button("➕ Add Step")
-    if submitted and raw_input:
+if st.button("🧩 Parse Steps"):
+    st.session_state.parsed_steps.clear()
+    lines = multi_input.strip().split("\n")
+    for idx, raw_input in enumerate(lines):
         try:
-            # Remove leading number and dash
             line = re.sub(r"^\d+\s*-\s*", "", raw_input)
-            # Extract Component Type
             component_type = re.findall(r"^(.*?):", line)[0].strip()
             line = line.split(":", 1)[1]
-            # Remove parentheses section
             line = re.sub(r"\(.*?\)", "", line).strip()
-            # Extract Meal Component Name (before →)
             meal_component_name = line.split("→")[0].strip()
             rest = line.split("→")[1].strip()
-            # Extract Step Code (e.g. 1) P1 → 1-P1)
             step_match = re.search(r"(\d+)\)\s*(P\d+)", rest)
             step_code = f"{step_match.group(1)}-{step_match.group(2)}" if step_match else ""
-            # Extract placement section (after step), keeping '|', removing "Paso" part
             placement_text = rest.split(step_match.group(0), 1)[1].strip() if step_match else rest
             english, spanish = placement_text.split("|", 1)
             spanish = re.sub(r"Paso\s*\d+\)\s*P\d+", "", spanish).strip()
             placement = f"{english.strip()} | {spanish.strip()}"
 
-            st.session_state.steps.append({
+            st.session_state.parsed_steps.append({
                 "Component Type": component_type,
                 "Placement": placement,
                 "Step": step_code,
                 "Meal Code": meal_code,
                 "Meal Component Name": meal_component_name,
-                "Standard Size": standard_size,
-                "Large Size": large_size
+                "Standard Size": "",
+                "Large Size": ""
             })
         except Exception as e:
-            st.error(f"Error parsing step: {e}")
+            st.error(f"Line {idx+1} parse error: {e}")
+
+if st.session_state.parsed_steps:
+    st.write("### Review and fill in sizes:")
+    for i, step in enumerate(st.session_state.parsed_steps):
+        st.markdown(f"**{i+1}. {step['Step']} - {step['Meal Component Name']} ({step['Component Type']})**")
+        step["Standard Size"] = st.text_input(f"Standard Size (g) for Step {i+1}", key=f"std_{i}")
+        step["Large Size"] = st.text_input(f"Large Size (g) for Step {i+1}", key=f"lg_{i}")
+
+    if st.button("➕ Add All Steps"):
+        if "steps" not in st.session_state:
+            st.session_state.steps = []
+        st.session_state.steps.extend(st.session_state.parsed_steps)
+        st.session_state.parsed_steps.clear()
+        st.experimental_rerun()
 
 # PDF generation function using reportlab
 def generate_pdf_from_steps(steps):
@@ -161,7 +168,7 @@ def generate_pdf_from_steps(steps):
     buffer.seek(0)
     return buffer
 
-if st.session_state.steps:
+if "steps" in st.session_state and st.session_state.steps:
     st.write("### Steps to Include:")
     for i, step in enumerate(st.session_state.steps):
         st.markdown(f"**{i+1}. {step['Step']} - {step['Meal Component Name']} ({step['Component Type']})**")
@@ -175,4 +182,4 @@ if st.session_state.steps:
         st.session_state.steps.clear()
         st.experimental_rerun()
 else:
-    st.info("Add at least one step to generate a PDF.")
+    st.info("Paste and parse steps above to begin.")
