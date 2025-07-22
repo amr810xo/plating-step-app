@@ -86,7 +86,7 @@ if st.session_state.parsed_steps:
             st.session_state.steps = []
         st.session_state.steps.extend(st.session_state.parsed_steps)
         st.session_state.parsed_steps.clear()
-        st.experimental_rerun()
+        st.rerun()
 
 
 def autoscale_font(c, text, max_font_size, max_width, fontname="Helvetica-Bold"):
