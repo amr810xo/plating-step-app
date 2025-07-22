@@ -56,7 +56,7 @@ if st.button("🧩 Parse Steps"):
     for line in lines:
         if line.strip() == "":
             if buffer:
-                blocks.append("\n".join(buffer).strip())  # ✅ preserve line breaks
+                blocks.append("\n".join(buffer).strip())
                 buffer = []
         else:
             buffer.append(line.strip())
@@ -105,7 +105,7 @@ if st.session_state.parsed_steps:
             st.session_state.steps = []
         st.session_state.steps.extend(st.session_state.parsed_steps)
         st.session_state.parsed_steps.clear()
-        st.rerun()  # ✅ updated for Streamlit
+        st.rerun()
 
 # PDF generation function
 def generate_pdf_from_steps(steps):
@@ -117,16 +117,17 @@ def generate_pdf_from_steps(steps):
     centered_normal = ParagraphStyle(name='CenteredNormal', parent=styles['Normal'], alignment=TA_CENTER)
 
     for step in steps:
+        # ✅ Big, multi-line headers for component info
         header_data = [[
-            "COMPONENT TYPE (TIPO DE COMPONENTE)",
-            "STEP (PASO)",
-            "MEAL CODE (CÓDIGO DE COMIDA)"
+            Paragraph("<b><font size=12>COMPONENT TYPE<br/>(TIPO DE COMPONENTE)</font></b>", centered_normal),
+            Paragraph("<b><font size=12>STEP<br/>(PASO)</font></b>", centered_normal),
+            Paragraph("<b><font size=12>MEAL CODE<br/>(CÓDIGO DE COMIDA)</font></b>", centered_normal)
         ]]
         header_table = Table(header_data, colWidths=[2.2 * inch] * 3)
         header_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9)
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('BOX', (0, 0), (-1, -1), 1, colors.black)
         ]))
         elements.append(header_table)
 
@@ -139,16 +140,15 @@ def generate_pdf_from_steps(steps):
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-            ('BOX', (0, 0), (-1, -1), 1, colors.black),
-            ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black)
+            ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('BOX', (0, 0), (-1, -1), 1, colors.black)
         ]))
         elements.append(data_table)
         elements.append(Spacer(1, 0.2 * inch))
 
-        placement_table = Table([["PLACEMENT (COLOCACIÓN)"]], colWidths=[6.6 * inch])
+        placement_table = Table([[Paragraph("<b><font size=12>PLACEMENT<br/>(COLOCACIÓN)</font></b>", centered_normal)]], colWidths=[6.6 * inch])
         placement_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
             ('BOX', (0, 0), (-1, -1), 1, colors.black)
         ]))
         elements.append(placement_table)
@@ -157,30 +157,27 @@ def generate_pdf_from_steps(steps):
         elements.append(Paragraph(f"<b>{placement_html}</b>", center_heading))
         elements.append(Spacer(1, 0.2 * inch))
 
-        name_table = Table([["COMPONENT NAME (NOMBRE DEL COMPONENTE)"]], colWidths=[6.6 * inch])
+        name_table = Table([[Paragraph("<b><font size=12>COMPONENT NAME<br/>(NOMBRE DEL COMPONENTE)</font></b>", centered_normal)]], colWidths=[6.6 * inch])
         name_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
             ('BOX', (0, 0), (-1, -1), 1, colors.black)
         ]))
         elements.append(name_table)
         elements.append(Paragraph(f"<b>{step['Meal Component Name']}</b>", center_heading))
         elements.append(Spacer(1, 0.2 * inch))
 
-        std_table = Table([["STANDARD (ESTÁNDAR)"]], colWidths=[6.6 * inch])
+        std_table = Table([[Paragraph("<b><font size=12>STANDARD<br/>(ESTÁNDAR)</font></b>", centered_normal)]], colWidths=[6.6 * inch])
         std_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
             ('BOX', (0, 0), (-1, -1), 1, colors.black)
         ]))
         elements.append(std_table)
         elements.append(Paragraph(f"<font size=28><b>{step['Standard Size']}</b></font>", center_heading))
         elements.append(Spacer(1, 0.2 * inch))
 
-        lg_table = Table([["LARGE (GRANDE)"]], colWidths=[6.6 * inch])
+        lg_table = Table([[Paragraph("<b><font size=12>LARGE<br/>(GRANDE)</font></b>", centered_normal)]], colWidths=[6.6 * inch])
         lg_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
             ('BOX', (0, 0), (-1, -1), 1, colors.black)
         ]))
         elements.append(lg_table)
