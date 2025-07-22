@@ -100,8 +100,8 @@ def generate_pdf_from_steps(steps):
     bold_style = ParagraphStyle(name='BoldSmall', alignment=TA_CENTER, fontSize=14, fontName="Helvetica-Bold")
     header_style = ParagraphStyle(name='Header', alignment=TA_CENTER, fontSize=30, leading=34, fontName="Helvetica-Bold", underline=True)
     normal_center = ParagraphStyle(name='NormalCenter', alignment=TA_CENTER, fontSize=22)
-    placement_text_style = ParagraphStyle(name='PlacementText', alignment=TA_CENTER, leading=30, fontSize=20)
-    component_name_style = ParagraphStyle(name='ComponentName', alignment=TA_CENTER, leading=30, fontSize=22)
+    placement_text_style = ParagraphStyle(name='PlacementText', alignment=TA_CENTER, leading=20, fontSize=20)
+    component_name_style = ParagraphStyle(name='ComponentName', alignment=TA_CENTER, leading=20, fontSize=22)
     weight_style = ParagraphStyle(name='Weight', alignment=TA_CENTER, fontSize=90)
 
     for step in steps:
