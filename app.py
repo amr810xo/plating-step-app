@@ -145,7 +145,7 @@ def generate_pdf_from_steps(steps):
         elements.append(Paragraph("STANDARD (ESTÁNDAR)", header_style))
         elements.append(Spacer(1, 10))
         elements.append(Paragraph(step['Standard Size'], weight_style))
-        elements.append(Spacer(1, 60))  # Increased spacer to prevent overlap
+        elements.append(Spacer(1, 100))  # Increased spacer to prevent overlap
 
         # Large
         elements.append(Paragraph("LARGE (GRANDE)", header_style))
