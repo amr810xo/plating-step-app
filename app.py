@@ -11,9 +11,9 @@ import re
 st.set_page_config(page_title="Multi-Step Plating PDF Generator", layout="centered")
 st.title("Multi-Step Plating PDF Generator")
 
-st.write("Paste multiple step descriptions below. Each line should be a separate step.")
+st.write("Paste multiple step descriptions below. Each step can be multiple lines, separated by blank lines.")
 
-# ✅ Scroll + auto-height styling for textarea
+# Scrollable text area style
 st.markdown("""
 <style>
 textarea {
@@ -33,26 +33,38 @@ document.addEventListener('input', function (event) {
 </script>
 """, unsafe_allow_html=True)
 
-# Meal name input (used for filename only)
 meal_name = st.text_input("Meal Name (used for file name only)", key="meal_name")
-
-# Persistent meal code
 meal_code = st.text_input("Meal Code (e.g. A, B, AV2)", key="meal_code")
 
 if "parsed_steps" not in st.session_state:
     st.session_state.parsed_steps = []
 
-# ✅ Updated with scrollable, fixed-height
 multi_input = st.text_area(
-    "Paste Multiple Steps (1 per line)",
+    "Paste Multiple Steps",
     height=150,
-    help="Supports long input. Scroll if text exceeds visible space."
+    help="Use blank lines between steps. Wrapped lines will be joined automatically."
 )
 
 if st.button("🧩 Parse Steps"):
     st.session_state.parsed_steps.clear()
+
     lines = multi_input.strip().split("\n")
-    for idx, raw_input in enumerate(lines):
+    blocks = []
+    buffer = []
+
+    for line in lines:
+        if line.strip() == "":
+            if buffer:
+                blocks.append(" ".join(buffer).strip())
+                buffer = []
+        else:
+            buffer.append(line.strip())
+
+    if buffer:
+        blocks.append(" ".join(buffer).strip())
+
+    parsed = []
+    for idx, raw_input in enumerate(blocks):
         try:
             line = re.sub(r"^\d+\s*-\s*", "", raw_input)
             component_type = re.findall(r"^(.*?):", line)[0].strip()
@@ -67,7 +79,7 @@ if st.button("🧩 Parse Steps"):
             spanish = re.sub(r"Paso\s*\d+\)\s*P\d+", "", spanish).strip()
             placement = f"{english.strip()} | {spanish.strip()}"
 
-            st.session_state.parsed_steps.append({
+            parsed.append({
                 "Component Type": component_type,
                 "Placement": placement,
                 "Step": step_code,
@@ -78,6 +90,8 @@ if st.button("🧩 Parse Steps"):
             })
         except Exception as e:
             st.error(f"Line {idx+1} parse error: {e}")
+
+    st.session_state.parsed_steps = parsed
 
 if st.session_state.parsed_steps:
     st.write("### Review and fill in sizes:")
@@ -93,7 +107,7 @@ if st.session_state.parsed_steps:
         st.session_state.parsed_steps.clear()
         st.experimental_rerun()
 
-# PDF generation function using reportlab
+# PDF generation function
 def generate_pdf_from_steps(steps):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -153,41 +167,4 @@ def generate_pdf_from_steps(steps):
 
         std_table = Table([["STANDARD (ESTÁNDAR)"]], colWidths=[6.6 * inch])
         std_table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-            ('BOX', (0, 0), (-1, -1), 1, colors.black)
-        ]))
-        elements.append(std_table)
-        elements.append(Paragraph(f"<font size=28><b>{step['Standard Size']}</b></font>", center_heading))
-        elements.append(Spacer(1, 0.2 * inch))
-
-        lg_table = Table([["LARGE (GRANDE)"]], colWidths=[6.6 * inch])
-        lg_table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-            ('BOX', (0, 0), (-1, -1), 1, colors.black)
-        ]))
-        elements.append(lg_table)
-        elements.append(Paragraph(f"<font size=28><b>{step['Large Size']}</b></font>", center_heading))
-
-        elements.append(PageBreak())
-
-    doc.build(elements)
-    buffer.seek(0)
-    return buffer
-
-if "steps" in st.session_state and st.session_state.steps:
-    st.write("### Steps to Include:")
-    for i, step in enumerate(st.session_state.steps):
-        st.markdown(f"**{i+1}. {step['Step']} - {step['Meal Component Name']} ({step['Component Type']})**")
-
-    if st.button("📄 Generate PDF"):
-        pdf_buffer = generate_pdf_from_steps(st.session_state.steps)
-        safe_filename = re.sub(r'[^a-zA-Z0-9_-]', '_', meal_name)[:25] or "plating_steps"
-        st.download_button("📥 Download PDF", data=pdf_buffer, file_name=f"{safe_filename}.pdf", mime="application/pdf")
-
-    if st.button("🗑️ Clear All Steps"):
-        st.session_state.steps.clear()
-        st.experimental_rerun()
-else:
-    st.info("Paste and parse steps above to begin.")
+            ('A
