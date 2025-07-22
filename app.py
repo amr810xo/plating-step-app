@@ -105,7 +105,7 @@ if st.session_state.parsed_steps:
             st.session_state.steps = []
         st.session_state.steps.extend(st.session_state.parsed_steps)
         st.session_state.parsed_steps.clear()
-        st.experimental_rerun()
+        st.rerun()  # ✅ updated for Streamlit
 
 # PDF generation function
 def generate_pdf_from_steps(steps):
@@ -153,7 +153,6 @@ def generate_pdf_from_steps(steps):
         ]))
         elements.append(placement_table)
 
-        # ✅ Line breaks preserved in placement
         placement_html = escape(step['Placement']).replace("\n", "<br/>")
         elements.append(Paragraph(f"<b>{placement_html}</b>", center_heading))
         elements.append(Spacer(1, 0.2 * inch))
@@ -204,6 +203,6 @@ if "steps" in st.session_state and st.session_state.steps:
 
     if st.button("🗑️ Clear All Steps"):
         st.session_state.steps.clear()
-        st.experimental_rerun()
+        st.rerun()
 else:
     st.info("Paste and parse steps above to begin.")
