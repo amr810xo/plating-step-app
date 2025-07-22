@@ -55,7 +55,9 @@ if st.button("🧩 Parse Steps"):
             step_match = re.search(r"(\d+)\)\s*(P\d+)", rest)
             step_code = f"{step_match.group(1)}-{step_match.group(2)}" if step_match else ""
             placement_text = rest.split(step_match.group(0), 1)[1].strip() if step_match else rest
-            english, spanish = placement_text.split("|", 1)
+            parts = placement_text.split("|", 1)
+            english = parts[0]
+            spanish = parts[1] if len(parts) > 1 else ""
             spanish = re.sub(r"Paso\s*\d+\)\s*P\d+", "", spanish).strip()
             placement = f"{english.strip()} | {spanish.strip()}"
 
