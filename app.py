@@ -102,7 +102,7 @@ def generate_pdf_from_steps(steps):
     normal_center = ParagraphStyle(name='NormalCenter', alignment=TA_CENTER, fontSize=22)
     placement_text_style = ParagraphStyle(name='PlacementText', alignment=TA_CENTER, leading=20, fontSize=20)
     component_name_style = ParagraphStyle(name='ComponentName', alignment=TA_CENTER, leading=20, fontSize=22)
-    weight_style = ParagraphStyle(name='Weight', alignment=TA_CENTER, fontSize=90)
+    weight_style = ParagraphStyle(name='Weight', alignment=TA_CENTER, fontSize=80)
 
     for step in steps:
         # Header table using Paragraphs to apply bold
