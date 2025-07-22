@@ -139,7 +139,7 @@ def generate_pdf_from_steps(steps):
         # Component Name
         elements.append(Paragraph("COMPONENT NAME (NOMBRE DEL COMPONENTE)", header_style))
         elements.append(Paragraph(step["Meal Component Name"], component_name_style))
-        elements.append(Spacer(1, 30))
+        elements.append(Spacer(1, 40))
 
         # Standard
         elements.append(Paragraph("STANDARD (ESTÁNDAR)", header_style))
