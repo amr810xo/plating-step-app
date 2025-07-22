@@ -167,4 +167,40 @@ def generate_pdf_from_steps(steps):
 
         std_table = Table([["STANDARD (ESTÁNDAR)"]], colWidths=[6.6 * inch])
         std_table.setStyle(TableStyle([
-            ('A
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('BOX', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(std_table)
+        elements.append(Paragraph(f"<font size=28><b>{step['Standard Size']}</b></font>", center_heading))
+        elements.append(Spacer(1, 0.2 * inch))
+
+        lg_table = Table([["LARGE (GRANDE)"]], colWidths=[6.6 * inch])
+        lg_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('BOX', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(lg_table)
+        elements.append(Paragraph(f"<font size=28><b>{step['Large Size']}</b></font>", center_heading))
+        elements.append(PageBreak())
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
+if "steps" in st.session_state and st.session_state.steps:
+    st.write("### Steps to Include:")
+    for i, step in enumerate(st.session_state.steps):
+        st.markdown(f"**{i+1}. {step['Step']} - {step['Meal Component Name']} ({step['Component Type']})**")
+
+    if st.button("📄 Generate PDF"):
+        pdf_buffer = generate_pdf_from_steps(st.session_state.steps)
+        safe_filename = re.sub(r'[^a-zA-Z0-9_-]', '_', meal_name)[:25] or "plating_steps"
+        st.download_button("📥 Download PDF", data=pdf_buffer, file_name=f"{safe_filename}.pdf", mime="application/pdf")
+
+    if st.button("🗑️ Clear All Steps"):
+        st.session_state.steps.clear()
+        st.experimental_rerun()
+else:
+    st.info("Paste and parse steps above to begin.")
