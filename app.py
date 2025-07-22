@@ -11,7 +11,7 @@ import re
 st.set_page_config(page_title="Multi-Step Plating PDF Generator", layout="centered")
 st.title("Multi-Step Plating PDF Generator")
 
-st.write("Enter the meal name (for file name), meal code once, then add plating steps one by one.")
+st.write("Paste a step description below. Standard Size and Large Size must still be entered manually.")
 
 # Inject JavaScript for auto-expanding text fields
 st.markdown("""
@@ -40,24 +40,43 @@ if "steps" not in st.session_state:
     st.session_state.steps = []
 
 with st.form("step_form"):
-    component_type = st.text_area("Component Type (e.g. VEG 1, PROTEIN 1)")
-    placement = st.text_area("Placement (e.g. Bottom, On top of Mash)")
-    step_code = st.text_area("Step Code (e.g. 1-P1)")
-    meal_component_name = st.text_area("Meal Component Name")
+    raw_input = st.text_area("Paste Step Description")
     standard_size = st.text_input("Standard Size (g)")
     large_size = st.text_input("Large Size (g)")
 
     submitted = st.form_submit_button("➕ Add Step")
-    if submitted:
-        st.session_state.steps.append({
-            "Component Type": component_type,
-            "Placement": placement,
-            "Step": step_code,
-            "Meal Code": meal_code,
-            "Meal Component Name": meal_component_name,
-            "Standard Size": standard_size,
-            "Large Size": large_size
-        })
+    if submitted and raw_input:
+        try:
+            # Remove leading number and dash
+            line = re.sub(r"^\d+\s*-\s*", "", raw_input)
+            # Extract Component Type
+            component_type = re.findall(r"^(.*?):", line)[0].strip()
+            line = line.split(":", 1)[1]
+            # Remove parentheses section
+            line = re.sub(r"\(.*?\)", "", line).strip()
+            # Extract Meal Component Name (before →)
+            meal_component_name = line.split("→")[0].strip()
+            rest = line.split("→")[1].strip()
+            # Extract Step Code (e.g. 1) P1 → 1-P1)
+            step_match = re.search(r"(\d+)\)\s*(P\d+)", rest)
+            step_code = f"{step_match.group(1)}-{step_match.group(2)}" if step_match else ""
+            # Extract placement section (after step), keeping '|', removing "Paso" part
+            placement_text = rest.split(step_match.group(0), 1)[1].strip() if step_match else rest
+            english, spanish = placement_text.split("|", 1)
+            spanish = re.sub(r"Paso\s*\d+\)\s*P\d+", "", spanish).strip()
+            placement = f"{english.strip()} | {spanish.strip()}"
+
+            st.session_state.steps.append({
+                "Component Type": component_type,
+                "Placement": placement,
+                "Step": step_code,
+                "Meal Code": meal_code,
+                "Meal Component Name": meal_component_name,
+                "Standard Size": standard_size,
+                "Large Size": large_size
+            })
+        except Exception as e:
+            st.error(f"Error parsing step: {e}")
 
 # PDF generation function using reportlab
 def generate_pdf_from_steps(steps):
@@ -69,7 +88,6 @@ def generate_pdf_from_steps(steps):
     centered_normal = ParagraphStyle(name='CenteredNormal', parent=styles['Normal'], alignment=TA_CENTER)
 
     for step in steps:
-        # Header labels (no borders)
         header_data = [[
             "COMPONENT TYPE (TIPO DE COMPONENTE)",
             "STEP (PASO)",
@@ -83,7 +101,6 @@ def generate_pdf_from_steps(steps):
         ]))
         elements.append(header_table)
 
-        # Data row (with border)
         data_table = Table([[
             Paragraph(f"<font size=8>{step['Component Type']}</font>", centered_normal),
             Paragraph(f"<font size=8>{step['Step']}</font>", centered_normal),
@@ -99,7 +116,6 @@ def generate_pdf_from_steps(steps):
         elements.append(data_table)
         elements.append(Spacer(1, 0.2 * inch))
 
-        # Placement
         placement_table = Table([["PLACEMENT (COLOCACIÓN)"]], colWidths=[6.6 * inch])
         placement_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -110,7 +126,6 @@ def generate_pdf_from_steps(steps):
         elements.append(Paragraph(f"<b>{step['Placement']}</b>", center_heading))
         elements.append(Spacer(1, 0.2 * inch))
 
-        # Component Name
         name_table = Table([["COMPONENT NAME (NOMBRE DEL COMPONENTE)"]], colWidths=[6.6 * inch])
         name_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -121,7 +136,6 @@ def generate_pdf_from_steps(steps):
         elements.append(Paragraph(f"<b>{step['Meal Component Name']}</b>", center_heading))
         elements.append(Spacer(1, 0.2 * inch))
 
-        # Standard Size
         std_table = Table([["STANDARD (ESTÁNDAR)"]], colWidths=[6.6 * inch])
         std_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -132,7 +146,6 @@ def generate_pdf_from_steps(steps):
         elements.append(Paragraph(f"<font size=28><b>{step['Standard Size']}</b></font>", center_heading))
         elements.append(Spacer(1, 0.2 * inch))
 
-        # Large Size
         lg_table = Table([["LARGE (GRANDE)"]], colWidths=[6.6 * inch])
         lg_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -142,14 +155,12 @@ def generate_pdf_from_steps(steps):
         elements.append(lg_table)
         elements.append(Paragraph(f"<font size=28><b>{step['Large Size']}</b></font>", center_heading))
 
-        # Page break after each step
         elements.append(PageBreak())
 
     doc.build(elements)
     buffer.seek(0)
     return buffer
 
-# Show and download section
 if st.session_state.steps:
     st.write("### Steps to Include:")
     for i, step in enumerate(st.session_state.steps):
