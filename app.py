@@ -13,19 +13,22 @@ st.title("Multi-Step Plating PDF Generator")
 
 st.write("Paste multiple step descriptions below. Each line should be a separate step.")
 
-# Inject JavaScript for auto-expanding text fields
+# ✅ Scroll + auto-height styling for textarea
 st.markdown("""
 <style>
 textarea {
-  overflow: hidden;
   resize: none;
+  overflow-y: auto !important;
+  max-height: 300px;
 }
 </style>
 <script>
 document.addEventListener('input', function (event) {
   if (event.target.tagName.toLowerCase() !== 'textarea') return;
-  event.target.style.height = 'auto';
-  event.target.style.height = (event.target.scrollHeight) + 'px';
+  if (event.target.scrollHeight <= 300) {
+    event.target.style.height = 'auto';
+    event.target.style.height = (event.target.scrollHeight) + 'px';
+  }
 }, false);
 </script>
 """, unsafe_allow_html=True)
@@ -39,7 +42,12 @@ meal_code = st.text_input("Meal Code (e.g. A, B, AV2)", key="meal_code")
 if "parsed_steps" not in st.session_state:
     st.session_state.parsed_steps = []
 
-multi_input = st.text_area("Paste Multiple Steps (1 per line)")
+# ✅ Updated with scrollable, fixed-height
+multi_input = st.text_area(
+    "Paste Multiple Steps (1 per line)",
+    height=150,
+    help="Supports long input. Scroll if text exceeds visible space."
+)
 
 if st.button("🧩 Parse Steps"):
     st.session_state.parsed_steps.clear()
