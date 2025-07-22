@@ -134,12 +134,12 @@ def generate_pdf_from_steps(steps):
         wrapped = textwrap.wrap(step["Placement"], width=90)
         for line in wrapped[:4]:
             elements.append(Paragraph(line, placement_text_style))
-        elements.append(Spacer(1, 20))
+        elements.append(Spacer(1, 50))
 
         # Component Name
         elements.append(Paragraph("COMPONENT NAME (NOMBRE DEL COMPONENTE)", header_style))
         elements.append(Paragraph(step["Meal Component Name"], component_name_style))
-        elements.append(Spacer(1, 40))
+        elements.append(Spacer(1, 50))
 
         # Standard
         elements.append(Paragraph("STANDARD (ESTÁNDAR)", header_style))
