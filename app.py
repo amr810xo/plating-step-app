@@ -6,6 +6,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
 from reportlab.lib import colors
+from xml.sax.saxutils import escape
 import re
 
 st.set_page_config(page_title="Multi-Step Plating PDF Generator", layout="centered")
@@ -55,13 +56,13 @@ if st.button("🧩 Parse Steps"):
     for line in lines:
         if line.strip() == "":
             if buffer:
-                blocks.append(" ".join(buffer).strip())
+                blocks.append("\n".join(buffer).strip())  # ✅ preserve line breaks
                 buffer = []
         else:
             buffer.append(line.strip())
 
     if buffer:
-        blocks.append(" ".join(buffer).strip())
+        blocks.append("\n".join(buffer).strip())
 
     parsed = []
     for idx, raw_input in enumerate(blocks):
@@ -78,7 +79,6 @@ if st.button("🧩 Parse Steps"):
             english, spanish = placement_text.split("|", 1)
             spanish = re.sub(r"Paso\s*\d+\)\s*P\d+", "", spanish).strip()
             placement = f"{english.strip()} | {spanish.strip()}"
-
             parsed.append({
                 "Component Type": component_type,
                 "Placement": placement,
@@ -152,7 +152,10 @@ def generate_pdf_from_steps(steps):
             ('BOX', (0, 0), (-1, -1), 1, colors.black)
         ]))
         elements.append(placement_table)
-        elements.append(Paragraph(f"<b>{step['Placement']}</b>", center_heading))
+
+        # ✅ Line breaks preserved in placement
+        placement_html = escape(step['Placement']).replace("\n", "<br/>")
+        elements.append(Paragraph(f"<b>{placement_html}</b>", center_heading))
         elements.append(Spacer(1, 0.2 * inch))
 
         name_table = Table([["COMPONENT NAME (NOMBRE DEL COMPONENTE)"]], colWidths=[6.6 * inch])
