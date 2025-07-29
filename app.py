@@ -164,6 +164,6 @@ def generate_pdf_from_steps(steps):
 if st.button("📄 Generate PDF"):
     if "steps" in st.session_state and st.session_state.steps:
         pdf = generate_pdf_from_steps(st.session_state.steps)
-        st.download_button("⬇️ Download PDF", data=pdf, file_name=f"{meal_name[:25]}.pdf")
+        st.download_button("⬇️ Download PDF", data=pdf, file_name=f"{meal_name[:35]}.pdf")
     else:
         st.warning("No steps added yet.")
