@@ -18,6 +18,8 @@ meal_code = st.text_input("Meal Code (e.g. A, B, AV2)", key="meal_code")
 
 if "parsed_steps" not in st.session_state:
     st.session_state.parsed_steps = []
+if "steps" not in st.session_state:
+    st.session_state.steps = []
 
 multi_input = st.text_area(
     "Paste Multiple Steps (use 1 - , 2 - , etc.)",
@@ -27,8 +29,8 @@ multi_input = st.text_area(
 
 if st.button("🧩 Parse Steps"):
     st.session_state.parsed_steps.clear()
-    # Use regex to split input into blocks starting with numbered prefixes like "1 - ", "2 - ", etc.
-    raw_blocks = re.split(r'\b\d+\s*-\s*', multi_input.strip())
+    # Updated regex that handles space before the number (e.g. " 5 -") and step 1 at the beginning
+    raw_blocks = re.split(r'(?:^|\n)\s*\d+\s*-\s*', multi_input.strip())
     blocks = [b.strip() for b in raw_blocks if b.strip()]
 
     parsed = []
@@ -71,8 +73,6 @@ if st.session_state.parsed_steps:
         step["Large Size"] = st.text_input(f"Large Size (g) for Step {i+1}", key=f"lg_{i}")
 
     if st.button("➕ Add All Steps"):
-        if "steps" not in st.session_state:
-            st.session_state.steps = []
         st.session_state.steps.extend(st.session_state.parsed_steps)
         st.session_state.parsed_steps.clear()
         st.rerun()
@@ -83,7 +83,6 @@ def generate_pdf_from_steps(steps):
     elements = []
     styles = getSampleStyleSheet()
 
-    # Custom styles
     bold_style = ParagraphStyle(name='BoldSmall', alignment=TA_CENTER, fontSize=14, fontName="Helvetica-Bold")
     header_style = ParagraphStyle(name='Header', alignment=TA_CENTER, fontSize=30, leading=34, fontName="Helvetica-Bold", underline=True)
     normal_center = ParagraphStyle(name='NormalCenter', alignment=TA_CENTER, fontSize=22)
@@ -92,7 +91,6 @@ def generate_pdf_from_steps(steps):
     weight_style = ParagraphStyle(name='Weight', alignment=TA_CENTER, fontSize=80)
 
     for step in steps:
-        # Header table using Paragraphs to apply bold
         col_data = [
             [Paragraph("COMPONENT TYPE", bold_style), Paragraph("STEP", bold_style), Paragraph("MEAL CODE", bold_style)],
             [Paragraph("(TIPO DE COMPONENTE)", bold_style), Paragraph("(PASO)", bold_style), Paragraph("(CÓDIGO DE COMIDA)", bold_style)]
@@ -104,7 +102,6 @@ def generate_pdf_from_steps(steps):
         ]))
         elements.append(table)
 
-        # Header values
         value_data = [[
             Paragraph(step["Component Type"], normal_center),
             Paragraph(step["Step"], normal_center),
@@ -118,38 +115,42 @@ def generate_pdf_from_steps(steps):
         elements.append(val_table)
         elements.append(Spacer(1, 20))
 
-        # Placement
         elements.append(Paragraph("PLACEMENT (COLOCACIÓN)", header_style))
         wrapped = textwrap.wrap(step["Placement"], width=90)
         for line in wrapped[:4]:
             elements.append(Paragraph(line, placement_text_style))
         elements.append(Spacer(1, 40))
 
-        # Component Name
         elements.append(Paragraph("COMPONENT NAME (NOMBRE DEL COMPONENTE)", header_style))
         elements.append(Paragraph(step["Meal Component Name"], component_name_style))
         elements.append(Spacer(1, 40))
 
-        # Standard
         elements.append(Paragraph("STANDARD (ESTÁNDAR)", header_style))
         elements.append(Spacer(1, 10))
         elements.append(Paragraph(step['Standard Size'], weight_style))
         elements.append(Spacer(1, 100))
 
-        # Large
         elements.append(Paragraph("LARGE (GRANDE)", header_style))
         elements.append(Spacer(1, 10))
         elements.append(Paragraph(step['Large Size'], weight_style))
         elements.append(Spacer(1, 10))
 
-        elements.append(PageBreak())
+        if step != steps[-1]:
+            elements.append(PageBreak())
 
     doc.build(elements)
     return buffer
 
 if st.button("📄 Generate PDF"):
-    if "steps" in st.session_state and st.session_state.steps:
+    if st.session_state.steps:
         pdf = generate_pdf_from_steps(st.session_state.steps)
         st.download_button("⬇️ Download PDF", data=pdf, file_name=f"{meal_name[:35]}.pdf")
     else:
         st.warning("No steps added yet.")
+
+if st.button("🔄 Start New Meal"):
+    st.session_state.steps = []
+    st.session_state.parsed_steps = []
+    st.session_state["meal_name"] = ""
+    st.session_state["meal_code"] = ""
+    st.rerun()
