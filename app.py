@@ -1,4 +1,3 @@
-
 import streamlit as st
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
@@ -12,7 +11,7 @@ import textwrap
 st.set_page_config(page_title="Multi-Step Plating PDF Generator", layout="centered")
 st.title("Multi-Step Plating PDF Generator")
 
-st.write("Paste multiple step descriptions below. Each step can be multiple lines, separated by blank lines.")
+st.write("Paste multiple step descriptions below. Use `1 - `, `2 - `, etc. to separate steps.")
 
 meal_name = st.text_input("Meal Name (used for file name only)", key="meal_name")
 meal_code = st.text_input("Meal Code (e.g. A, B, AV2)", key="meal_code")
@@ -21,27 +20,16 @@ if "parsed_steps" not in st.session_state:
     st.session_state.parsed_steps = []
 
 multi_input = st.text_area(
-    "Paste Multiple Steps",
+    "Paste Multiple Steps (use 1 - , 2 - , etc.)",
     height=150,
-    help="Use blank lines between steps. Wrapped lines will be joined automatically."
+    help="Separate steps by typing 1 - , 2 - , etc. New lines are no longer required."
 )
 
 if st.button("🧩 Parse Steps"):
     st.session_state.parsed_steps.clear()
-    lines = multi_input.strip().split("\n")
-    blocks = []
-    buffer = []
-
-    for line in lines:
-        if line.strip() == "":
-            if buffer:
-                blocks.append(" ".join(buffer).strip())
-                buffer = []
-        else:
-            buffer.append(line.strip())
-
-    if buffer:
-        blocks.append(" ".join(buffer).strip())
+    # Use regex to split input into blocks starting with numbered prefixes like "1 - ", "2 - ", etc.
+    raw_blocks = re.split(r'\b\d+\s*-\s*', multi_input.strip())
+    blocks = [b.strip() for b in raw_blocks if b.strip()]
 
     parsed = []
     for idx, raw_input in enumerate(blocks):
@@ -88,7 +76,6 @@ if st.session_state.parsed_steps:
         st.session_state.steps.extend(st.session_state.parsed_steps)
         st.session_state.parsed_steps.clear()
         st.rerun()
-
 
 def generate_pdf_from_steps(steps):
     buffer = BytesIO()
@@ -147,7 +134,7 @@ def generate_pdf_from_steps(steps):
         elements.append(Paragraph("STANDARD (ESTÁNDAR)", header_style))
         elements.append(Spacer(1, 10))
         elements.append(Paragraph(step['Standard Size'], weight_style))
-        elements.append(Spacer(1, 100))  # Increased spacer to prevent overlap
+        elements.append(Spacer(1, 100))
 
         # Large
         elements.append(Paragraph("LARGE (GRANDE)", header_style))
@@ -159,7 +146,6 @@ def generate_pdf_from_steps(steps):
 
     doc.build(elements)
     return buffer
-
 
 if st.button("📄 Generate PDF"):
     if "steps" in st.session_state and st.session_state.steps:
