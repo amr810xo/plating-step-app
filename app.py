@@ -153,3 +153,11 @@ if st.button("📄 Generate PDF"):
         st.download_button("⬇️ Download PDF", data=pdf, file_name=f"{meal_name[:35]}.pdf")
     else:
         st.warning("No steps added yet.")
+
+
+if st.button("🔄 Start New Meal"):
+    st.session_state.steps = []
+    st.session_state.parsed_steps = []
+    st.session_state.meal_name = ""
+    st.session_state.meal_code = ""
+    st.rerun()
