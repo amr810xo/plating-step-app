@@ -18,6 +18,8 @@ meal_code = st.text_input("Meal Code (e.g. A, B, AV2)", key="meal_code")
 
 if "parsed_steps" not in st.session_state:
     st.session_state.parsed_steps = []
+if "steps" not in st.session_state:
+    st.session_state.steps = []
 
 multi_input = st.text_area(
     "Paste Multiple Steps (use 1 - , 2 - , etc.)",
@@ -27,7 +29,6 @@ multi_input = st.text_area(
 
 if st.button("🧩 Parse Steps"):
     st.session_state.parsed_steps.clear()
-    # Use regex to split input into blocks starting with numbered prefixes like "1 - ", "2 - ", etc.
     raw_blocks = re.split(r'\b\d+\s*-\s*', multi_input.strip())
     blocks = [b.strip() for b in raw_blocks if b.strip()]
 
@@ -71,8 +72,6 @@ if st.session_state.parsed_steps:
         step["Large Size"] = st.text_input(f"Large Size (g) for Step {i+1}", key=f"lg_{i}")
 
     if st.button("➕ Add All Steps"):
-        if "steps" not in st.session_state:
-            st.session_state.steps = []
         st.session_state.steps.extend(st.session_state.parsed_steps)
         st.session_state.parsed_steps.clear()
         st.rerun()
@@ -92,7 +91,7 @@ def generate_pdf_from_steps(steps):
     weight_style = ParagraphStyle(name='Weight', alignment=TA_CENTER, fontSize=80)
 
     for step in steps:
-        # Header table using Paragraphs to apply bold
+        # Header table
         col_data = [
             [Paragraph("COMPONENT TYPE", bold_style), Paragraph("STEP", bold_style), Paragraph("MEAL CODE", bold_style)],
             [Paragraph("(TIPO DE COMPONENTE)", bold_style), Paragraph("(PASO)", bold_style), Paragraph("(CÓDIGO DE COMIDA)", bold_style)]
@@ -104,7 +103,7 @@ def generate_pdf_from_steps(steps):
         ]))
         elements.append(table)
 
-        # Header values
+        # Value row
         value_data = [[
             Paragraph(step["Component Type"], normal_center),
             Paragraph(step["Step"], normal_center),
@@ -142,19 +141,21 @@ def generate_pdf_from_steps(steps):
         elements.append(Paragraph(step['Large Size'], weight_style))
         elements.append(Spacer(1, 10))
 
-        elements.append(PageBreak())
+        # Only add a page break if this isn't the last step
+        if step != steps[-1]:
+            elements.append(PageBreak())
 
     doc.build(elements)
     return buffer
 
 if st.button("📄 Generate PDF"):
-    if "steps" in st.session_state and st.session_state.steps:
+    if st.session_state.steps:
         pdf = generate_pdf_from_steps(st.session_state.steps)
         st.download_button("⬇️ Download PDF", data=pdf, file_name=f"{meal_name[:35]}.pdf")
     else:
         st.warning("No steps added yet.")
 
-
+# 🔄 Reset Button
 if st.button("🔄 Start New Meal"):
     st.session_state.steps = []
     st.session_state.parsed_steps = []
