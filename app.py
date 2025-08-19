@@ -2,7 +2,7 @@ import streamlit as st
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepInFrame
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
 import re
@@ -116,9 +116,21 @@ def generate_pdf_from_steps(steps):
         elements.append(Spacer(1, 20))
 
         elements.append(Paragraph("PLACEMENT (COLOCACIÓN)", header_style))
-        wrapped = textwrap.wrap(step["Placement"], width=90)
-        for line in wrapped[:4]:
-            elements.append(Paragraph(line, placement_text_style))
+
+        # ======= Patched section: Keep PlacementText on one page and auto-shrink if needed =======
+        placement_para = Paragraph(step["Placement"], placement_text_style)
+        placement_box = KeepInFrame(
+            maxWidth=6.5*inch,   # adjust as needed for your page margins
+            maxHeight=3*inch,    # adjust height you want to dedicate to placement text
+            content=[placement_para],
+            hAlign='CENTER',
+            vAlign='MIDDLE',
+            shrink=1,            # allow shrinking
+            shrinkShrink=1       # iterative shrinking if needed
+        )
+        elements.append(placement_box)
+        # ======= End patched section =======
+
         elements.append(Spacer(1, 40))
 
         elements.append(Paragraph("COMPONENT NAME (NOMBRE DEL COMPONENTE)", header_style))
