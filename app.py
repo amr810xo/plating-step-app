@@ -117,19 +117,17 @@ def generate_pdf_from_steps(steps):
 
         elements.append(Paragraph("PLACEMENT (COLOCACIÓN)", header_style))
 
-        # ======= Patched section: Keep PlacementText on one page and auto-shrink if needed =======
+        # Keep Placement text on one page and auto-shrink to fit the box.
         placement_para = Paragraph(step["Placement"], placement_text_style)
         placement_box = KeepInFrame(
-            maxWidth=6.5*inch,   # adjust as needed for your page margins
-            maxHeight=3*inch,    # adjust height you want to dedicate to placement text
-            content=[placement_para],
+            6.5*inch,        # width (positional arg; some versions don't accept keyword)
+            3*inch,          # height
+            [placement_para],
+            mode='shrink',   # shrink content to fit
             hAlign='CENTER',
-            vAlign='MIDDLE',
-            shrink=1,            # allow shrinking
-            shrinkShrink=1       # iterative shrinking if needed
+            vAlign='MIDDLE'
         )
         elements.append(placement_box)
-        # ======= End patched section =======
 
         elements.append(Spacer(1, 40))
 
