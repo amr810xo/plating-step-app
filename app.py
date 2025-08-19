@@ -121,7 +121,7 @@ def generate_pdf_from_steps(steps):
         placement_para = Paragraph(step["Placement"], placement_text_style)
         placement_box = KeepInFrame(
             6.5*inch,        # width (positional arg; some versions don't accept keyword)
-            3*inch,          # height
+            2*inch,          # height
             [placement_para],
             mode='shrink',   # shrink content to fit
             hAlign='CENTER',
