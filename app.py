@@ -129,21 +129,21 @@ def generate_pdf_from_steps(steps):
         )
         elements.append(placement_box)
 
-        elements.append(Spacer(1, 25))
+        elements.append(Spacer(1, 20))
 
         elements.append(Paragraph("COMPONENT NAME (NOMBRE DEL COMPONENTE)", header_style))
         elements.append(Paragraph(step["Meal Component Name"], component_name_style))
-        elements.append(Spacer(1, 40))
+        elements.append(Spacer(1, 35))
 
         elements.append(Paragraph("STANDARD (ESTÁNDAR)", header_style))
-        elements.append(Spacer(1, 10))
+        elements.append(Spacer(1, 5))
         elements.append(Paragraph(step['Standard Size'], weight_style))
-        elements.append(Spacer(1, 100))
+        elements.append(Spacer(1, 95))
 
         elements.append(Paragraph("LARGE (GRANDE)", header_style))
-        elements.append(Spacer(1, 10))
+        elements.append(Spacer(1, 5))
         elements.append(Paragraph(step['Large Size'], weight_style))
-        elements.append(Spacer(1, 10))
+        elements.append(Spacer(1, 5))
 
         if step != steps[-1]:
             elements.append(PageBreak())
